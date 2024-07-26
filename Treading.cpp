@@ -65,6 +65,6 @@ int main() {
     printf("---------------------------------------------------\n");
     printf("Execution time: %f seconds\n", end_time - start_time);
 
-    free(u); // Free the allocated memory function
+    free(u); // Free the allocated memory function for malloc
     return 0;
 }
