@@ -11,31 +11,31 @@
 #define SPATIAL_SS 0.01           // Spatial Step Size
 #define TIME_SS 0.0001            // Time Step Size
 
-// Method for setting up the initial Temperature Distribution using sine waves
+//Method for setting up the Temperature Distribution (Done with Sine waves)
 void setUp(double* u, int numSP) {
     for (int i = 0; i < numSP; i++) {
         u[i] = sin(PI * i * SPATIAL_SS);
     }
 }
 
-// Method for solving the Heat Equation using finite difference method
+//Method for solving the Heat Equation (Finite Version)
 void solverHeat(double* u, int numSP, int numTS, double thermalDiff, double spatialSS, double timeSS) {
-    double* u_new = (double*)malloc(numSP * sizeof(double)); // Allocate memory for the new temperature values and make it to double
+    double* u_new = (double*)malloc(numSP * sizeof(double)); //Allocate memory for the array
 
-    for (int t = 0; t < numTS; t++) { // Time Step Loop
+    for (int t = 0; t < numTS; t++) { //Time Step Loop
 #pragma omp parallel for
-        for (int i = 1; i < numSP - 1; i++) { // Update temperature
+        for (int i = 1; i < numSP - 1; i++) { //Loop for updating the temperature in each Spatial Point
             u_new[i] = u[i] + thermalDiff * timeSS / (spatialSS * spatialSS) * (u[i + 1] - 2 * u[i] + u[i - 1]);
         }
 #pragma omp parallel for
-        for (int i = 1; i < numSP - 1; i++) { // Copy new temperature values back to the original array
+        for (int i = 1; i < numSP - 1; i++) { //Sets the new Temperature to the original array
             u[i] = u_new[i];
         }
     }
-    free(u_new); // Free the allocated memory
+    free(u_new);
 }
 
-// Method for printing the temperature values for readability
+//Method for printing the temperature values for readability
 void printValues(double* u, int numSP, const char* title) {
     printf("%s:\n", title);
     printf("Index\tTemperature\n");
@@ -47,27 +47,37 @@ void printValues(double* u, int numSP, const char* title) {
 }
 
 int main() {
-    double* u = (double*)malloc(NUM_SP * sizeof(double)); // Allocate memory for the temperature array
-    setUp(u, NUM_SP); // Initialize the temperature distribution
+    double* u = (double*)malloc(NUM_SP * sizeof(double));
+    setUp(u, NUM_SP); //Initialize the temperature distribution
 
-    // Print initial temperature distribution
+    //INITIAL TEMP DISTRIBUTION
     printf("Initial Temperature Distribution:\n");
     printValues(u, NUM_SP, "Initial");
 
-    // Measure and print execution time for the solver
+    //Measure execution time for the solver
     double start_time = omp_get_wtime();
     solverHeat(u, NUM_SP, NUM_TS, THERMAL_DIFF, SPATIAL_SS, TIME_SS);
     double end_time = omp_get_wtime();
 
-    // Print final temperature distribution
+    //FINAL TEMP DISTRIBUTION
     printf("Final Temperature Distribution:\n");
     printValues(u, NUM_SP, "Final");
+
+    //EXECUTION TIME
     printf("---------------------------------------------------\n");
     printf("Execution time: %f seconds\n", end_time - start_time);
 
-    free(u); // Free the allocated memory function for malloc
+    free(u);
     return 0;
 }
 
+//INFO GATHERED:
 // For omp multi threading, when the number of threads for each loop is 4 and the executioni time is 0.031962 second. And in Performance Profiler is 3.512 second
 // Without omp multi threading, The execute time in Performance Profiler is 4.493 second
+
+/*
+When having a larger spread of Spartial Points it is better to
+use treads so that there can be many loops done, about 4-5 is the correct amount
+in smaller case 5 is best, and in bigger cases 4 is best.
+Overall, not using thread is the worst option available.
+*/
