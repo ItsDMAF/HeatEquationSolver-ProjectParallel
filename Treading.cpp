@@ -68,3 +68,6 @@ int main() {
     free(u); // Free the allocated memory function for malloc
     return 0;
 }
+
+// For omp multi threading, when the number of threads for each loop is 4 and the executioni time is 0.031962 second. And in Performance Profiler is 3.512 second
+// Without omp multi threading, The execute time in Performance Profiler is 4.493 second
